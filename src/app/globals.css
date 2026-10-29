@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+:root {
+  --bg-obsidian: #120808;
+  --bg-crimson-glow: #3D0C0A;
+  --brand-terracotta: #BC5442;
+  --pack-hexagon: #6E1816;
+  --bg-cream: #F7EFE2;
+  --text-charcoal: #1B1B19;
+  --accent-gold: #C9A24A;
+  --accent-argentina: #75AADB;
+}
+
+@layer base {
+  html {
+    background-color: var(--bg-obsidian);
+    color: var(--bg-cream);
+    scroll-behavior: auto;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: var(--bg-obsidian);
+    color: var(--bg-cream);
+    font-family: var(--font-sans), system-ui, sans-serif;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+.font-serif-display {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.font-sans-tech {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Marquee infinito para los logos de comercios aliados */
+@keyframes drymeat-marquee {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: drymeat-marquee 38s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-track:hover,
+.animate-marquee-track:focus-within {
+  animation-play-state: paused;
+}
+
+/* Textura sutil de grano cinematográfico sin costo de GPU */
+.film-grain-overlay {
+  background-image: radial-gradient(rgba(247, 239, 226, 0.08) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Accesibilidad: respeta prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-track {
+    animation: none !important;
+    transform: none !important;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
