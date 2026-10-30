@@ -1,43 +1,38 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import { BRAND_CONTENT } from "@/data/content";
+import React, { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 interface BullSvgProps {
   className?: string;
   assembled?: boolean;
-  highlightColor?: string;
+  fillColor?: string;
+  strokeColor?: string;
 }
 
 /**
- * Versión aproximada en polígonos SVG del toro geométrico de DRY•MEAT.
- * Cada polígono tiene un desplazamiento inicial para ensamblarse suavemente
- * usando solo transform y opacity (60 fps).
- * NOTA: Reemplazar por las curvas exactas del vector original de la marca cuando lo entreguen.
+ * Toro geométrico facetado en SVG.
+ * CORRECCIÓN: transformBox: "fill-box" en cada polígono.
+ * Usa exclusivamente la paleta cerrada.
  */
 export function GeometricBullSvg({
   className = "w-28 h-24",
   assembled = true,
-  highlightColor = "#BC5442",
+  fillColor = "#BC5442",
+  strokeColor = "#120808",
 }: BullSvgProps) {
   const facets = [
-    // Cuernos y cabeza
-    { points: "22,18 32,36 25,40", fill: "#A24333", tx: -18, ty: -14, rot: -12 },
-    { points: "46,20 55,34 45,36", fill: "#C95E4B", tx: -8, ty: -18, rot: 10 },
-    { points: "25,40 45,36 38,56 18,54", fill: highlightColor, tx: -15, ty: -6, rot: -8 },
-    // Lomo y morrillo (volumen principal)
-    { points: "45,36 78,33 98,46 62,58", fill: "#C55A47", tx: 6, ty: -16, rot: 8 },
-    { points: "38,56 62,58 55,82 36,75", fill: "#B34B3A", tx: -10, ty: 8, rot: -6 },
-    { points: "62,58 98,46 112,62 78,80", fill: highlightColor, tx: 14, ty: -8, rot: 7 },
-    // Pecho y patas delanteras
-    { points: "36,75 55,82 62,102 48,104", fill: "#9E3E2E", tx: -12, ty: 16, rot: -10 },
-    { points: "62,58 78,80 86,112 74,114 68,88", fill: "#B84F3E", tx: 4, ty: 18, rot: 6 },
-    // Cuarto trasero y patas traseras
-    { points: "98,46 126,56 132,78 112,62", fill: "#C95E4B", tx: 18, ty: -4, rot: 11 },
-    { points: "112,62 132,78 128,106 118,106 114,82", fill: "#A44131", tx: 20, ty: 14, rot: -9 },
-    // Cola facetada
-    { points: "126,56 142,42 136,30 146,42 132,64", fill: highlightColor, tx: 24, ty: -14, rot: 15 },
+    { points: "22,18 32,36 25,40", tx: -22, ty: -16, rot: -14 },
+    { points: "46,20 55,34 45,36", tx: -10, ty: -20, rot: 12 },
+    { points: "25,40 45,36 38,56 18,54", tx: -18, ty: -8, rot: -10 },
+    { points: "45,36 78,33 98,46 62,58", tx: 8, ty: -18, rot: 9 },
+    { points: "38,56 62,58 55,82 36,75", tx: -12, ty: 10, rot: -8 },
+    { points: "62,58 98,46 112,62 78,80", tx: 16, ty: -10, rot: 8 },
+    { points: "36,75 55,82 62,102 48,104", tx: -14, ty: 18, rot: -12 },
+    { points: "62,58 78,80 86,112 74,114 68,88", tx: 6, ty: 20, rot: 7 },
+    { points: "98,46 126,56 132,78 112,62", tx: 20, ty: -6, rot: 13 },
+    { points: "112,62 132,78 128,106 118,106 114,82", tx: 22, ty: 16, rot: -11 },
+    { points: "126,56 142,42 136,30 146,42 132,64", tx: 26, ty: -16, rot: 16 },
   ];
 
   return (
@@ -54,28 +49,30 @@ export function GeometricBullSvg({
           <polygon
             key={idx}
             points={f.points}
-            fill={f.fill}
-            stroke="#120808"
-            strokeWidth="0.6"
+            fill={fillColor}
+            stroke={strokeColor}
+            strokeWidth="1.2"
             style={{
+              transformBox: "fill-box",
+              transformOrigin: "center",
               transform: assembled
                 ? "translate3d(0px, 0px, 0px) rotate(0deg) scale(1)"
-                : `translate3d(${f.tx}px, ${f.ty}px, 0px) rotate(${f.rot}deg) scale(0.84)`,
-              opacity: assembled ? 1 : 0.15,
-              transformOrigin: "center",
-              transition: `transform 900ms cubic-bezier(0.22, 1, 0.36, 1) ${
-                idx * 45
-              }ms, opacity 700ms ease ${idx * 45}ms`,
+                : `translate3d(${f.tx}px, ${f.ty}px, 0px) rotate(${f.rot}deg) scale(0.75)`,
+              opacity: assembled ? 1 : 0,
+              transition: `transform 850ms cubic-bezier(0.22, 1, 0.36, 1) ${
+                idx * 40
+              }ms, opacity 650ms ease ${idx * 40}ms`,
             }}
           />
         ))}
-        {/* Ojo geométrico */}
         <polygon
           points="29,45 35,43 32,47"
           fill="#F7EFE2"
           style={{
+            transformBox: "fill-box",
+            transformOrigin: "center",
             opacity: assembled ? 1 : 0,
-            transition: "opacity 600ms ease 550ms",
+            transition: "opacity 600ms ease 500ms",
           }}
         />
       </g>
@@ -84,128 +81,241 @@ export function GeometricBullSvg({
 }
 
 /**
- * Componente de marca que combina el revelado de /public/images/logo.png
- * con el toro facetado en SVG.
+ * Facetas angulares de la misma familia geométrica del toro que vuelan
+ * alrededor del producto y se ensamblan con el scroll.
  */
-export function BrandLogoBadge({
-  assembled = true,
-  size = "md",
+export function AngularShardsOverlay({
+  shardsContainerRef,
 }: {
-  assembled?: boolean;
-  size?: "sm" | "md" | "lg";
+  shardsContainerRef: React.RefObject<SVGSVGElement | null>;
 }) {
-  const [logoImgError, setLogoImgError] = useState(false);
-
-  const dimensions =
-    size === "lg"
-      ? "w-28 h-28 sm:w-36 sm:h-36"
-      : size === "sm"
-      ? "w-11 h-11"
-      : "w-20 h-20 sm:w-24 sm:h-24";
+  const shards = [
+    {
+      id: "shard-1",
+      points: "120,180 185,140 160,225",
+      fill: "#BC5442",
+      fromX: -180,
+      fromY: -120,
+      fromRot: -35,
+    },
+    {
+      id: "shard-2",
+      points: "820,150 890,195 835,245 795,190",
+      fill: "#C9A24A",
+      fromX: 190,
+      fromY: -110,
+      fromRot: 42,
+    },
+    {
+      id: "shard-3",
+      points: "150,520 215,490 190,565",
+      fill: "#F7EFE2",
+      fromX: -210,
+      fromY: 140,
+      fromRot: 28,
+    },
+    {
+      id: "shard-4",
+      points: "810,510 875,475 860,555 795,540",
+      fill: "#BC5442",
+      fromX: 200,
+      fromY: 130,
+      fromRot: -30,
+    },
+    {
+      id: "shard-5",
+      points: "290,110 340,85 325,135",
+      fill: "#C9A24A",
+      fromX: -90,
+      fromY: -160,
+      fromRot: -22,
+    },
+    {
+      id: "shard-6",
+      points: "690,585 745,560 725,620",
+      fill: "#BC5442",
+      fromX: 120,
+      fromY: 170,
+      fromRot: 25,
+    },
+  ];
 
   return (
-    <div className="inline-flex flex-col items-center select-none">
-      {!logoImgError ? (
-        <div
-          className={`relative ${dimensions} rounded-2xl overflow-hidden border border-[#F7EFE2]/15 shadow-xl bg-[#F7EFE2] transition-all duration-700`}
+    <svg
+      ref={shardsContainerRef}
+      viewBox="0 0 1000 700"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      className="pointer-events-none absolute inset-0 w-full h-full"
+      aria-hidden="true"
+    >
+      {shards.map((s) => (
+        <polygon
+          key={s.id}
+          data-shard="true"
+          data-from-x={s.fromX}
+          data-from-y={s.fromY}
+          data-from-rot={s.fromRot}
+          points={s.points}
+          fill={s.fill}
           style={{
-            transform: assembled ? "translate3d(0,0,0) scale(1)" : "translate3d(0,12px,0) scale(0.92)",
-            opacity: assembled ? 1 : 0,
+            transformBox: "fill-box",
+            transformOrigin: "center",
+            opacity: 0,
           }}
-        >
-          <Image
-            src={BRAND_CONTENT.assets.logo}
-            alt="Logo oficial DRY•MEAT"
-            fill
-            sizes="160px"
-            priority
-            className="object-contain p-1.5"
-            onError={() => setLogoImgError(true)}
-          />
-        </div>
-      ) : (
-        <div className="flex flex-col items-center">
-          <GeometricBullSvg
-            assembled={assembled}
-            className={size === "sm" ? "w-12 h-10" : "w-28 h-24"}
-          />
-          {size !== "sm" && (
-            <span className="font-serif-display text-xl sm:text-2xl font-bold tracking-wider text-[#F7EFE2] mt-1">
-              DRY<span className="text-[#BC5442] mx-0.5">•</span>MEAT
-            </span>
-          )}
-        </div>
-      )}
-    </div>
+        />
+      ))}
+    </svg>
   );
 }
 
 /**
- * Pantalla de carga inicial con progreso de 0% a 100% mientras se preparan los assets.
+ * Preloader: la barra avanza de forma optimista hasta 85% y salta a 100% cuando
+ * `ready` es true (bolsa cargada + fuentes listas). Luego abre la cortina angular.
+ * - onComplete se guarda en un ref: ya no se reinicia en cada render del padre.
+ * - Solo se completa una vez (doneRef).
  */
-export function PreloaderScreen({ onComplete }: { onComplete: () => void }) {
-  const [progress, setProgress] = useState(0);
-  const [exiting, setExiting] = useState(false);
+export function AngularPreloader({
+  ready,
+  onComplete,
+}: {
+  ready: boolean;
+  onComplete: () => void;
+}) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const topBladeRef = useRef<HTMLDivElement | null>(null);
+  const bottomBladeRef = useRef<HTMLDivElement | null>(null);
+  const centerContentRef = useRef<HTMLDivElement | null>(null);
+  const numberRef = useRef<HTMLSpanElement | null>(null);
+  const barRef = useRef<HTMLDivElement | null>(null);
+  const progressRef = useRef({ value: 0 });
+  const doneRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
-    let rafId: number;
-    let current = 0;
-
-    // Precarga de las dos imágenes clave del proyecto
-    const preloadPaths = [BRAND_CONTENT.assets.logo, BRAND_CONTENT.assets.packHero];
-    preloadPaths.forEach((src) => {
-      const img = new window.Image();
-      img.src = src;
-    });
-
-    const step = () => {
-      current += (100 - current) * 0.14 + 1.8;
-      if (current >= 99.5) {
-        setProgress(100);
-        setExiting(true);
-        const timer = setTimeout(() => {
-          onComplete();
-        }, 420);
-        return () => clearTimeout(timer);
-      } else {
-        setProgress(Math.floor(current));
-        rafId = requestAnimationFrame(step);
-      }
-    };
-
-    rafId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(rafId);
+    onCompleteRef.current = onComplete;
   }, [onComplete]);
+
+  const paint = () => {
+    const v = progressRef.current.value;
+    if (numberRef.current) numberRef.current.textContent = `${Math.round(v)}%`;
+    if (barRef.current) barRef.current.style.transform = `scaleX(${v / 100})`;
+  };
+
+  // Avance optimista mientras carga todo
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.to(progressRef.current, {
+        value: 85,
+        duration: 2.4,
+        ease: "power1.out",
+        onUpdate: paint,
+      });
+    });
+    return () => ctx.revert();
+  }, []);
+
+  // Cierre cuando todo está listo
+  useEffect(() => {
+    if (!ready || doneRef.current) return;
+    doneRef.current = true;
+
+    gsap.context(() => {
+      gsap.to(progressRef.current, {
+        value: 100,
+        duration: 0.45,
+        ease: "power2.out",
+        overwrite: true,
+        onUpdate: paint,
+        onComplete: () => {
+          const tl = gsap.timeline({
+            onComplete: () => {
+              if (rootRef.current) {
+                rootRef.current.style.display = "none";
+                rootRef.current.setAttribute("aria-hidden", "true");
+              }
+              onCompleteRef.current();
+            },
+          });
+
+          tl.to(centerContentRef.current, {
+            opacity: 0,
+            scale: 0.94,
+            duration: 0.25,
+            ease: "power2.in",
+          })
+            .to(
+              topBladeRef.current,
+              {
+                yPercent: -105,
+                xPercent: -12,
+                duration: 0.75,
+                ease: "power4.inOut",
+              },
+              "-=0.05"
+            )
+            .to(
+              bottomBladeRef.current,
+              {
+                yPercent: 105,
+                xPercent: 12,
+                duration: 0.75,
+                ease: "power4.inOut",
+              },
+              "<"
+            );
+        },
+      });
+    });
+    // Sin cleanup a propósito: la animación de salida debe terminar sola
+  }, [ready]);
 
   return (
     <div
-      aria-live="polite"
-      aria-label="Cargando presentación de DRY MEAT"
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#120808] text-[#F7EFE2] transition-opacity duration-500 ${
-        exiting ? "opacity-0 pointer-events-none" : "opacity-100"
-      }`}
+      ref={rootRef}
+      role="status"
+      aria-label="Cargando presentación DRY•MEAT"
+      className="fixed inset-0 z-[60] overflow-hidden pointer-events-auto"
     >
-      <div className="flex flex-col items-center max-w-xs w-full px-6">
-        <GeometricBullSvg assembled={progress > 25} className="w-28 h-24 mb-4" />
+      {/* Hoja superior de la cortina diagonal */}
+      <div
+        ref={topBladeRef}
+        className="absolute inset-0 bg-[#120808]"
+        style={{
+          clipPath: "polygon(0% 0%, 100% 0%, 100% 42%, 0% 62%)",
+        }}
+      />
 
-        <div className="font-serif-display text-2xl tracking-[0.2em] font-bold mb-2">
-          DRY<span className="text-[#BC5442] mx-1">•</span>MEAT
+      {/* Hoja inferior de la cortina diagonal */}
+      <div
+        ref={bottomBladeRef}
+        className="absolute inset-0 bg-[#1B1B19]"
+        style={{
+          clipPath: "polygon(0% 61.5%, 100% 41.5%, 100% 100%, 0% 100%)",
+        }}
+      />
+
+      {/* Contenido central del cargador (sin cajas ni bordes redondeados) */}
+      <div
+        ref={centerContentRef}
+        className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-[#F7EFE2]"
+      >
+        <GeometricBullSvg assembled className="w-24 h-20 mb-4" />
+        <div className="font-serif-display text-4xl sm:text-6xl font-black tracking-tight uppercase">
+          DRY<span className="text-[#BC5442]">•</span>MEAT
         </div>
-
-        <p className="text-[11px] uppercase tracking-[0.25em] text-[#F7EFE2]/60 mb-6">
-          Preparando presentación
-        </p>
-
-        {/* Barra de progreso */}
-        <div className="w-full h-1 bg-[#F7EFE2]/10 rounded-full overflow-hidden mb-3">
+        <div className="w-56 h-[2px] bg-[#F7EFE2]/20 mt-6 overflow-hidden">
           <div
-            className="h-full bg-[#BC5442] transition-transform duration-150 origin-left"
-            style={{ transform: `scaleX(${progress / 100})` }}
+            ref={barRef}
+            className="w-full h-full bg-[#BC5442] origin-left"
+            style={{ transform: "scaleX(0)" }}
           />
         </div>
-
-        <span className="font-sans-tech text-xs font-semibold tabular-nums text-[#C9A24A]">
-          {progress}%
+        <span
+          ref={numberRef}
+          className="mt-3 font-serif-display text-2xl font-bold tabular-nums text-[#C9A24A]"
+        >
+          0%
         </span>
       </div>
     </div>

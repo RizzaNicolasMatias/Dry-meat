@@ -2,9 +2,7 @@
 
 :root {
   --bg-obsidian: #120808;
-  --bg-crimson-glow: #3D0C0A;
   --brand-terracotta: #BC5442;
-  --pack-hexagon: #6E1816;
   --bg-cream: #F7EFE2;
   --text-charcoal: #1B1B19;
   --accent-gold: #C9A24A;
@@ -12,6 +10,11 @@
 }
 
 @layer base {
+  /*
+   * IMPORTANTE: el overflow-x oculto va SOLO en <html>.
+   * Si <body> también lo tiene, el body pasa a ser un contenedor de scroll
+   * y se rompen position: sticky y los efectos de pin del scroll.
+   */
   html {
     background-color: var(--bg-obsidian);
     color: var(--bg-cream);
@@ -23,7 +26,6 @@
     background-color: var(--bg-obsidian);
     color: var(--bg-cream);
     font-family: var(--font-sans), system-ui, sans-serif;
-    overflow-x: hidden;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
@@ -42,42 +44,43 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Marquee infinito para los logos de comercios aliados */
-@keyframes drymeat-marquee {
-  0% {
-    transform: translate3d(0%, 0, 0);
-  }
+/* Reglas recomendadas por Lenis (scroll suave) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Flotación suave continua en contenedor hijo para no chocar con GSAP scrub */
+@keyframes pack-idle-float {
+  0%,
   100% {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(0, 0px, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
   }
 }
 
-.animate-marquee-track {
-  display: flex;
-  width: max-content;
-  animation: drymeat-marquee 38s linear infinite;
+.animate-pack-float {
+  animation: pack-idle-float 4.5s ease-in-out infinite;
   will-change: transform;
 }
 
-.animate-marquee-track:hover,
-.animate-marquee-track:focus-within {
-  animation-play-state: paused;
-}
-
-/* Textura sutil de grano cinematográfico sin costo de GPU */
-.film-grain-overlay {
-  background-image: radial-gradient(rgba(247, 239, 226, 0.08) 1px, transparent 0);
-  background-size: 24px 24px;
-}
-
-/* Accesibilidad: respeta prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee-track {
+  .animate-pack-float {
     animation: none !important;
-    transform: none !important;
-    flex-wrap: wrap;
-    width: 100%;
-    justify-content: center;
   }
 
   *,
